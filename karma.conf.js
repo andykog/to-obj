@@ -5,7 +5,7 @@ module.exports = function (config) {
     frameworks: ['jasmine'],
     files: [
       'toObj.js',
-      'tests.js',
+      'toObj__tests.js',
     ],
     reporters: ['progress'],
   });

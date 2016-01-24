@@ -3,39 +3,43 @@
   else if (typeof define == 'function' && define.amd) define(name, definition);
   else context[name] = definition();
 }('toObj', this, function () {
-
   var isArray = Array.isArray || function isArray(arg) { return Object.prototype.toString.call(arg) === '[object Array]'; };
 
-  return function toObj(source, transformer) {
+  var toObj = function toObj(pred, source, transformer) {
+    if (!source || typeof source !== 'object' && typeof source !== 'function') {
+      throw new Error('toObj(source, transformer): Expected source to be array/object-like, given “' + source + '”');
+    }
     var k, obj = {};
 
-    if (!source || typeof source !== 'object' && typeof source !== 'function') {
-      throw new Error("toObj: Expected argument 0 to be array/object-like, given “" + source + "”");
-    }
-
     if (isArray(source)) {
-      if (arguments.length < 2) {
-        for (k = 0; k < source.length; k++) obj[k] = source[k];
+      if (arguments.length < 3) {
+        for (k = 0; k < source.length; k++) obj[pred ? pred(source[k], k) : k] = source[k];
       } else if (typeof transformer === 'function') {
-        for (k = 0; k < source.length; k++) obj[source[k]] = transformer(source[k], k);
+        for (k = 0; k < source.length; k++) obj[pred ? pred(source[k], k) : source[k]] = transformer(source[k], k);
       } else if (isArray(transformer)) {
-        for (k = 0; k < source.length; k++) obj[source[k]] = transformer[k];
+        for (k = 0; k < source.length; k++) obj[pred ? pred(source[k], k) : source[k]] = transformer[k];
       } else {
-        for (k = 0; k < source.length; k++) obj[source[k]] = transformer;
+        for (k = 0; k < source.length; k++) obj[pred ? pred(source[k], k) : source[k]] = transformer;
       }
     } else { // object given
-      if (arguments.length < 2) {
-        for (k in source) if (source.hasOwnProperty(k)) obj[k] = source[k];
+      if (arguments.length < 3) {
+        for (k in source) if (source.hasOwnProperty(k)) obj[pred ? pred(source[k], k) : k] = source[k];
       } else if (typeof transformer === 'function') {
-        for (k in source) if (source.hasOwnProperty(k)) obj[k] = transformer(source[k], k);
-      } else if (isArray(transformer)) {
+        for (k in source) if (source.hasOwnProperty(k)) obj[pred ? pred(source[k], k) : k] = transformer(source[k], k);
+      } else if (isArray(transformer)) { // For interface uniformity
         var unsafeIndex = 0;
-        for (k in source) if (source.hasOwnProperty(k)) obj[k] = transformer[unsafeIndex++];
+        for (k in source) if (source.hasOwnProperty(k)) obj[pred ? pred(source[k], k) : k] = transformer[unsafeIndex++];
       } else {
-        for (k in source) if (source.hasOwnProperty(k)) obj[k] = transformer;
+        for (k in source) if (source.hasOwnProperty(k)) obj[pred ? pred(source[k], k) : k] = transformer;
       }
     }
-
     return obj;
   };
+
+  var finalToObj = toObj.bind(null, undefined);
+  finalToObj.byKey = function(predicate) {
+    var finalPredicate = typeof predicate === 'function' ? predicate : function (element, key) { return element[predicate]; };
+    return toObj.bind(null, finalPredicate);
+  };
+  return finalToObj;
 }));
