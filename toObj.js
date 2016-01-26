@@ -3,7 +3,6 @@
   else if (typeof define == 'function' && define.amd) define(name, definition);
   else context[name] = definition();
 }('toObj', this, function () {
-  var isArray = Array.isArray || function isArray(arg) { return Object.prototype.toString.call(arg) === '[object Array]'; };
 
   var toObj = function toObj(pred, source, transformer) {
     if (!source || typeof source !== 'object' && typeof source !== 'function') {
@@ -11,12 +10,12 @@
     }
     var k, obj = {};
 
-    if (isArray(source)) {
+    if (source instanceof Array) {
       if (arguments.length < 3) {
         for (k = 0; k < source.length; k++) obj[pred ? pred(source[k], k) : k] = source[k];
       } else if (typeof transformer === 'function') {
         for (k = 0; k < source.length; k++) obj[pred ? pred(source[k], k) : source[k]] = transformer(source[k], k);
-      } else if (isArray(transformer)) {
+      } else if (transformer instanceof Array) {
         for (k = 0; k < source.length; k++) obj[pred ? pred(source[k], k) : source[k]] = transformer[k];
       } else {
         for (k = 0; k < source.length; k++) obj[pred ? pred(source[k], k) : source[k]] = transformer;
@@ -26,7 +25,7 @@
         for (k in source) if (source.hasOwnProperty(k)) obj[pred ? pred(source[k], k) : k] = source[k];
       } else if (typeof transformer === 'function') {
         for (k in source) if (source.hasOwnProperty(k)) obj[pred ? pred(source[k], k) : k] = transformer(source[k], k);
-      } else if (isArray(transformer)) { // For interface uniformity
+      } else if (transformer instanceof Array) { // For interface uniformity
         var unsafeIndex = 0;
         for (k in source) if (source.hasOwnProperty(k)) obj[pred ? pred(source[k], k) : k] = transformer[unsafeIndex++];
       } else {

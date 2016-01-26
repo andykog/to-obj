@@ -1,6 +1,6 @@
 {
   "name": "to-obj",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Array/object to object converter",
   "repository": "https://github.com/andykog/to-obj",
   "main": "toObj.js",
